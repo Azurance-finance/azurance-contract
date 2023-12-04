@@ -74,7 +74,7 @@ contract AzurancePool is IAzurancePool {
         if (_totalShare == 0) {
             _share = _amount;
         } else {
-            _share = (_amount * _totalShare) / (totalValueLocked() + _amount);
+            _share = (_amount * _totalShare) / totalValueLocked();
         }
 
         require(
@@ -98,7 +98,7 @@ contract AzurancePool is IAzurancePool {
         if (_totalShare == 0) {
             _shares = _amount;
         } else {
-            _shares = (_amount * _totalShare) / (totalValueLocked() + _amount);
+            _shares = (_amount * _totalShare) / totalValueLocked();
         }
 
         _underlyingToken.transferFrom(msg.sender, address(this), _amount);
@@ -130,12 +130,7 @@ contract AzurancePool is IAzurancePool {
         uint256 _sellerAmount
     ) external override onlyState(State.Claimable) {
         uint256 _withdrewAmount = getAmountClaimable(_buyerAmount, _sellerAmount);
-        if (_buyerAmount > 0) {
-            _buyerToken.transferFrom(msg.sender, address(this), _buyerAmount);
-        }
-        if (_sellerAmount > 0) {
-            _sellerToken.transferFrom(msg.sender, address(this), _sellerAmount);
-        }
+        _withdraw(_buyerAmount, _sellerAmount, _withdrewAmount);
         emit Withdrew(address(_underlyingToken), _withdrewAmount, msg.sender);
     }
 
@@ -144,12 +139,7 @@ contract AzurancePool is IAzurancePool {
         uint256 _sellerAmount
     ) external override onlyState(State.Matured) {
         uint256 _withdrewAmount = getAmountMatured(_buyerAmount, _sellerAmount);
-        if (_buyerAmount > 0) {
-            _buyerToken.transferFrom(msg.sender, address(this), _buyerAmount);
-        }
-        if (_sellerAmount > 0) {
-            _sellerToken.transferFrom(msg.sender, address(this), _sellerAmount);
-        }
+       _withdraw(_buyerAmount, _sellerAmount, _withdrewAmount);
         emit Withdrew(address(_underlyingToken), _withdrewAmount, msg.sender);
     }
 
@@ -161,12 +151,7 @@ contract AzurancePool is IAzurancePool {
             _buyerAmount,
             _sellerAmount
         );
-        if (_buyerAmount > 0) {
-            _buyerToken.transferFrom(msg.sender, address(this), _buyerAmount);
-        }
-        if (_sellerAmount > 0) {
-            _sellerToken.transferFrom(msg.sender, address(this), _sellerAmount);
-        }
+        _withdraw(_buyerAmount, _sellerAmount, _withdrewAmount);
         emit Withdrew(address(_underlyingToken), _withdrewAmount, msg.sender);
     }
 
@@ -186,9 +171,7 @@ contract AzurancePool is IAzurancePool {
         uint _totalShare = totalShare();
         uint _totalValueLocked = totalValueLocked();
 
-        uint _totalBuyerValue = (_totalBuyerShare *
-            _benefitMultiplier *
-            _totalValueLocked) / _totalShare;
+        uint _totalBuyerValue = (_totalBuyerShare * _benefitMultiplier * _totalValueLocked) / 10 ** multiplierDecimals() / _totalShare; 
         uint _totalSellerValue = _totalValueLocked - _totalBuyerValue;
 
         uint _withdrewAmount = 0;
@@ -224,7 +207,7 @@ contract AzurancePool is IAzurancePool {
             (_totalSellerShare +
                 (_totalBuyerShare *
                     (_benefitMultiplier - 10 ** multiplierDecimals())) /
-                _benefitMultiplier)) / _totalShare;
+                _benefitMultiplier)) / _totalShare / 10 ** multiplierDecimals();
 
         uint _totalBuyerValue = _totalValueLocked - _totalSellerValue;
 
@@ -368,5 +351,20 @@ contract AzurancePool is IAzurancePool {
         uint256 _totalValue
     ) internal pure returns (uint256) {
         return (_share * _totalValue) / _totalShare;
+    }
+
+    function _withdraw(uint256 _buyerAmount, uint256 _sellerAmount, uint256 _withdrewAmount) internal {
+        if (_buyerAmount > 0) {
+            _buyerToken.burn(msg.sender, _buyerAmount);
+        }
+        if (_sellerAmount > 0) {
+            _sellerToken.burn(msg.sender, _sellerAmount);
+        }
+        require(_withdrewAmount > 0, "Amount out must be greater than 0");
+        _transferOut(_withdrewAmount);
+    }
+
+    function _transferOut(uint256 _amount) internal virtual {
+       _underlyingToken.transfer(msg.sender, _amount);
     }
 }

@@ -30,7 +30,7 @@ contract AzurancePoolTest is Test {
         testERC20.mint(address(this), 1000000 * 10 ** testERC20.decimals());
         testERC20.mint(address(1), 1000000 * 10 ** testERC20.decimals());
 
-        uint256 _benefitMultiplier = 200000; // 2x
+        uint256 _benefitMultiplier = 2000000; // 2x
         uint256 _maturityBlock = 100;
         uint256 _staleBlock = 90;
         address _underlyingToken = address(testERC20);
@@ -60,13 +60,12 @@ contract AzurancePoolTest is Test {
         testERC20.approve(address(azurancePool), _amount * 2);
         azurancePool.sellInsurance(_amount * 2);
 
-        uint _share = (_amount * azurancePool.totalShare()) / (azurancePool.totalValueLocked() + _amount);
         vm.stopPrank();
         testERC20.approve(address(azurancePool), _amount);
         azurancePool.buyInsurance(_amount);
 
         assertEq(azurancePool.totalValueLocked(), _amount * 3);
-        assertEq(IERC20(azurancePool.buyerToken()).balanceOf(address(this)), _share);
+        assertEq(IERC20(azurancePool.buyerToken()).balanceOf(address(this)), _amount);
     }
 
     function testFail_BuyInsuranceExceedMax() public {
@@ -121,5 +120,66 @@ contract AzurancePoolTest is Test {
         azurancePool.unlockMaturity();
         azurancePool.unlockClaim();
     }
+
+    // Test withdraw on claimable - check seller and buyer token amount
+    function testWithdrawClaimable() public {
+        uint _initialBalance = 1000000 * 10 ** testERC20.decimals();
+
+        uint _amount = 100 * 10 ** testERC20.decimals();
+        vm.startPrank(address(1));
+        testERC20.approve(address(azurancePool), _amount * 2);
+        azurancePool.sellInsurance(_amount * 2);
+
+        vm.stopPrank();
+        testERC20.approve(address(azurancePool), _amount);
+        azurancePool.buyInsurance(_amount);
+
+        IERC20 sellerToken = IERC20(azurancePool.sellerToken());
+        IERC20 buyerToken = IERC20(azurancePool.buyerToken());
+
+        uint _totalBuyerShare = azurancePool.totalBuyShare();
+        uint _totalSellerShare = azurancePool.totalSellShare();
+        uint _totalShare = azurancePool.totalShare();
+        uint _totalValueLocked = azurancePool.totalValueLocked();
+
+        uint _totalBuyerValue = (_totalBuyerShare * azurancePool.benefitMultiplier() * _totalValueLocked) / 10 ** azurancePool.multiplierDecimals() / _totalShare; 
+        uint _totalSellerValue = _totalValueLocked - _totalBuyerValue;
+
+        console.log("_totalBuyerShare: ", _totalBuyerShare);
+        console.log("_totalSellerShare: ", _totalSellerShare);
+        console.log("_totalShare: ", _totalShare);
+        console.log("_totalValueLocked: ", _totalValueLocked);
+        console.log("_totalBuyerValue: ", _totalBuyerValue);
+        console.log("_totalSellerValue: ", _totalSellerValue);
+
+        // console.log("Total value locked: ", azurancePool.totalValueLocked());
+        // console.log("Total shares: ", azurancePool.totalShare());
+
+        // console.log("Sell shares: ", sellerToken.balanceOf(address(1)));
+        // console.log("Buy shares: ", buyerToken.balanceOf(address(this)));
+
+        // console.log("Sell claimable: ", azurancePool.getAmountClaimable(0, sellerToken.balanceOf(address(1))));
+        // console.log("Buy claimable: ", azurancePool.getAmountClaimable(buyerToken.balanceOf(address(this)), 0));
+
+        // azurancePool.unlockClaim();
+
+        // vm.startPrank(address(1));
+        // sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
+        // azurancePool.withdrawClaimable(0, sellerToken.balanceOf(address(1)));
+        // uint sellerBalanceAfter = testERC20.balanceOf(address(1));
+        // console.log("Seller balance: ", sellerBalanceAfter);
+        // vm.stopPrank();
+
+        // buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
+        // azurancePool.withdrawClaimable(buyerToken.balanceOf(address(this)), 0);
+        // uint buyerBalanceAfter = testERC20.balanceOf(address(this));
+        // console.log("Buyer balance: ", buyerBalanceAfter);
+
+        // assertLt(sellerBalanceAfter, _initialBalance);
+        // assertGt(buyerBalanceAfter, _initialBalance);
+    }
+
+    // Test withdraw on matured
+    // Test withdraw on terminated
 
 }
