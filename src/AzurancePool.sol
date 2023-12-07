@@ -4,12 +4,12 @@ pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./MintableERC20.sol";
 import "./interfaces/IAzurancePool.sol";
+import "./interfaces/IAzuranceChecker.sol";
 
 contract AzurancePool is IAzurancePool {
     uint256 private _multiplier;
     uint256 private _maturityBlock;
     uint256 private _staleBlock;
-    string private _oracleUrl;
 
     uint256 private _fee;
     address private _feeTo;
@@ -21,6 +21,8 @@ contract AzurancePool is IAzurancePool {
     MintableERC20 private _buyerToken;
     MintableERC20 private _sellerToken;
 
+    IAzuranceChecker private _checker;
+
     State private _status;
 
     // Constructor
@@ -31,15 +33,14 @@ contract AzurancePool is IAzurancePool {
         address underlyingToken_,
         uint256 fee_,
         address feeTo_,
+        address checker_,
         string memory name_,
-        string memory symbol_,
-        string memory oracleUrl_
+        string memory symbol_
     ) {
         _multiplier = multiplier_;
         _maturityBlock = maturityBlock_;
         _staleBlock = staleBlock_;
 
-        _oracleUrl = oracleUrl_;
         _fee = fee_;
         _feeTo = feeTo_;
 
@@ -52,6 +53,8 @@ contract AzurancePool is IAzurancePool {
             string.concat(name_, "-SELL"),
             string.concat(symbol_, "-SELL")
         );
+
+        _checker = IAzuranceChecker(checker_);
 
         _status = State.Ongoing;
     }
@@ -68,6 +71,11 @@ contract AzurancePool is IAzurancePool {
 
     modifier onlyNotState(State _state) {
         require(_status != _state, "Azurance: onlyNotState");
+        _;
+    }
+
+    modifier onlyChecker() {
+        require(msg.sender == address(_checker), "Azurance: Only checker");
         _;
     }
 
@@ -115,7 +123,7 @@ contract AzurancePool is IAzurancePool {
         emit InsuranceSold(msg.sender, address(_underlyingToken), _amount);
     }
 
-    function unlockClaim() external override onlyState(State.Ongoing) {
+    function unlockClaim() external override onlyState(State.Ongoing) onlyChecker {
         // Check from oracle
         _status = State.Claimable;
         _settle();
@@ -129,11 +137,19 @@ contract AzurancePool is IAzurancePool {
         emit StateChanged(State.Ongoing, State.Matured);
     }
 
-    function unlockTerminate() external override onlyState(State.Ongoing) {
+    function unlockTerminate() external override onlyState(State.Ongoing) onlyChecker {
         // Check oracle fail
         _status = State.Terminated;
         _settle();
         emit StateChanged(State.Ongoing, State.Terminated);
+    }
+
+    function checkUnlockClaim() external override {
+        _checker.checkUnlockClaim(address(this));
+    }
+
+    function checkUnlockTerminate() external override {
+        _checker.checkUnlockTerminate(address(this));
     }
 
     function withdraw(
@@ -342,12 +358,12 @@ contract AzurancePool is IAzurancePool {
         return _feeTo;
     }
 
-    function maturityBlock() external view override returns (uint256) {
-        return _maturityBlock;
+    function checker() external view override returns (address) {
+        return address(_checker);
     }
 
-    function oracleUrl() external view override returns (string memory) {
-        return _oracleUrl;
+    function maturityBlock() external view override returns (uint256) {
+        return _maturityBlock;
     }
 
     function buyerToken() external view override returns (address) {

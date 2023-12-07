@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/AzurancePool.sol";
+import "../src/SimpleChecker.sol";
 import "./contracts/TestERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -10,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 contract AzurancePoolTest is Test {
 
     AzurancePool public azurancePool;
+    SimpleChecker public checker;
     TestERC20 public testERC20;
 
     uint256 private _multiplier = 10000000; // 3x
@@ -34,6 +36,8 @@ contract AzurancePoolTest is Test {
         testERC20.mint(address(this), 1000000 * 10 ** testERC20.decimals());
         testERC20.mint(address(1), 1000000 * 10 ** testERC20.decimals());
 
+        checker = new SimpleChecker();
+
         uint256 _maturityBlock = 100;
         uint256 _staleBlock = 90;
         address _underlyingToken = address(testERC20);
@@ -42,9 +46,8 @@ contract AzurancePoolTest is Test {
 
         string memory _name = "Covid Insurance";
         string memory _symbol = "COVID";
-        string memory _oracleUrl = "https://google.com";
 
-        azurancePool = new AzurancePool(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, _name, _symbol, _oracleUrl);
+        azurancePool = new AzurancePool(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, address(checker), _name, _symbol);
     }
 
     function testSellInsurance() public {
@@ -102,7 +105,7 @@ contract AzurancePoolTest is Test {
     }
 
     function testChangeStateToClaimable() public {
-        azurancePool.unlockClaim();
+        azurancePool.checkUnlockClaim();
     }
 
     function testChangeStateToMatured() public {
@@ -111,17 +114,17 @@ contract AzurancePoolTest is Test {
     }
 
     function testChangeStateToTerminate() public {
-        azurancePool.unlockClaim();
+        azurancePool.checkUnlockTerminate();
     }
 
     function testFail_ChangeStateFromClaimableToMatured() public {
-        azurancePool.unlockClaim();
+        azurancePool.checkUnlockClaim();
         azurancePool.unlockMaturity();
     }
 
     function testFail_ChangeStateFromMaturedToClaimable() public {
         azurancePool.unlockMaturity();
-        azurancePool.unlockClaim();
+        azurancePool.checkUnlockClaim();
     }
 
     // Test withdraw on claimable - check seller and buyer token amount
@@ -140,7 +143,7 @@ contract AzurancePoolTest is Test {
         IERC20 sellerToken = IERC20(azurancePool.sellerToken());
         IERC20 buyerToken = IERC20(azurancePool.buyerToken());
 
-        azurancePool.unlockClaim();
+        azurancePool.checkUnlockClaim();
 
         vm.startPrank(address(1));
         sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
@@ -209,7 +212,7 @@ contract AzurancePoolTest is Test {
         IERC20 sellerToken = IERC20(azurancePool.sellerToken());
         IERC20 buyerToken = IERC20(azurancePool.buyerToken());
 
-        azurancePool.unlockTerminate();
+        azurancePool.checkUnlockTerminate();
 
         vm.startPrank(address(1));
         sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));

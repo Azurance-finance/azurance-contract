@@ -22,10 +22,10 @@ interface IAzurancePool {
     function maturityBlock() external view returns (uint256);
     function staleBlock() external view returns (uint256);
     function underlyingToken() external view returns (address);
-    function oracleUrl() external view returns (string memory);
     function fee() external view returns (uint256);
     function feeDecimals() external view returns (uint256);
     function feeTo() external view returns (address);
+    function checker() external view returns (address);
     function buyerToken() external view returns (address);
     function sellerToken() external view returns (address);
     function status() external view returns (State);
@@ -36,6 +36,8 @@ interface IAzurancePool {
     function unlockClaim() external;
     function unlockMaturity() external;
     function unlockTerminate() external;
+    function checkUnlockClaim() external;
+    function checkUnlockTerminate() external;
     function withdraw(uint256 buyerAmount, uint256 sellerAmount) external;
     function withdrawFee(uint256 amount) external;
 
