@@ -17,7 +17,7 @@ interface IAzurancePool {
     event Withdrew(address token, uint256 amount, address indexed to);
 
     // State variables
-    function benefitMultiplier() external view returns (uint256);
+    function multiplier() external view returns (uint256);
     function multiplierDecimals() external view returns (uint256);
     function maturityBlock() external view returns (uint256);
     function staleBlock() external view returns (uint256);
@@ -36,9 +36,7 @@ interface IAzurancePool {
     function unlockClaim() external;
     function unlockMaturity() external;
     function unlockTerminate() external;
-    function withdrawClaimable(uint256 buyerAmount, uint256 sellerAmount) external;
-    function withdrawMatured(uint256 buyerAmount, uint256 sellerAmount) external;
-    function withdrawTerminated(uint256 buyerAmount, uint256 sellerAmount) external;
+    function withdraw(uint256 buyerAmount, uint256 sellerAmount) external;
     function withdrawFee(uint256 amount) external;
 
     // Read Functions
@@ -49,4 +47,7 @@ interface IAzurancePool {
     function totalShare() external view returns (uint256);
     function totalSellShare() external view returns (uint256);
     function totalBuyShare() external view returns (uint256);
+    function settledShare() external view returns (uint256);
+    function settledSellShare() external view returns (uint256);
+    function settledBuyShare() external view returns (uint256);
 }

@@ -12,6 +12,10 @@ contract AzurancePoolTest is Test {
     AzurancePool public azurancePool;
     TestERC20 public testERC20;
 
+    uint256 private _multiplier = 10000000; // 3x
+    uint256 private _multiplierDecimals = 6;
+
+
     enum State {
         Ongoing,
         Claimable,
@@ -30,7 +34,6 @@ contract AzurancePoolTest is Test {
         testERC20.mint(address(this), 1000000 * 10 ** testERC20.decimals());
         testERC20.mint(address(1), 1000000 * 10 ** testERC20.decimals());
 
-        uint256 _benefitMultiplier = 2000000; // 2x
         uint256 _maturityBlock = 100;
         uint256 _staleBlock = 90;
         address _underlyingToken = address(testERC20);
@@ -41,11 +44,11 @@ contract AzurancePoolTest is Test {
         string memory _symbol = "COVID";
         string memory _oracleUrl = "https://google.com";
 
-        azurancePool = new AzurancePool(_benefitMultiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, _name, _symbol, _oracleUrl);
+        azurancePool = new AzurancePool(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, _name, _symbol, _oracleUrl);
     }
 
     function testSellInsurance() public {
-        uint _amount = 2 * 100 * 10 ** testERC20.decimals();
+        uint _amount = 100 * 10 ** testERC20.decimals();
 
         testERC20.approve(address(azurancePool), _amount);
         azurancePool.sellInsurance(_amount);
@@ -57,14 +60,14 @@ contract AzurancePoolTest is Test {
     function testBuyInsurance() public {
         uint _amount = 100 * 10 ** testERC20.decimals();
         vm.startPrank(address(1));
-        testERC20.approve(address(azurancePool), _amount * 2);
-        azurancePool.sellInsurance(_amount * 2);
+        testERC20.approve(address(azurancePool), _amount * _multiplier / 10 ** _multiplierDecimals);
+        azurancePool.sellInsurance(_amount * _multiplier / 10 ** _multiplierDecimals);
 
         vm.stopPrank();
         testERC20.approve(address(azurancePool), _amount);
         azurancePool.buyInsurance(_amount);
 
-        assertEq(azurancePool.totalValueLocked(), _amount * 3);
+        assertEq(azurancePool.totalValueLocked(), _amount + _amount * _multiplier / 10 ** _multiplierDecimals);
         assertEq(IERC20(azurancePool.buyerToken()).balanceOf(address(this)), _amount);
     }
 
@@ -127,8 +130,8 @@ contract AzurancePoolTest is Test {
 
         uint _amount = 100 * 10 ** testERC20.decimals();
         vm.startPrank(address(1));
-        testERC20.approve(address(azurancePool), _amount * 2);
-        azurancePool.sellInsurance(_amount * 2);
+        testERC20.approve(address(azurancePool), _amount * _multiplier / 10 ** _multiplierDecimals);
+        azurancePool.sellInsurance(_amount * _multiplier / 10 ** _multiplierDecimals);
 
         vm.stopPrank();
         testERC20.approve(address(azurancePool), _amount);
@@ -137,49 +140,91 @@ contract AzurancePoolTest is Test {
         IERC20 sellerToken = IERC20(azurancePool.sellerToken());
         IERC20 buyerToken = IERC20(azurancePool.buyerToken());
 
-        uint _totalBuyerShare = azurancePool.totalBuyShare();
-        uint _totalSellerShare = azurancePool.totalSellShare();
-        uint _totalShare = azurancePool.totalShare();
-        uint _totalValueLocked = azurancePool.totalValueLocked();
+        azurancePool.unlockClaim();
 
-        uint _totalBuyerValue = (_totalBuyerShare * azurancePool.benefitMultiplier() * _totalValueLocked) / 10 ** azurancePool.multiplierDecimals() / _totalShare; 
-        uint _totalSellerValue = _totalValueLocked - _totalBuyerValue;
+        vm.startPrank(address(1));
+        sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
+        uint sellerBalanceBefore = testERC20.balanceOf(address(1));
+        azurancePool.withdraw(0, sellerToken.balanceOf(address(1)));
+        uint sellerBalanceAfter = testERC20.balanceOf(address(1));
+        vm.stopPrank();
 
-        console.log("_totalBuyerShare: ", _totalBuyerShare);
-        console.log("_totalSellerShare: ", _totalSellerShare);
-        console.log("_totalShare: ", _totalShare);
-        console.log("_totalValueLocked: ", _totalValueLocked);
-        console.log("_totalBuyerValue: ", _totalBuyerValue);
-        console.log("_totalSellerValue: ", _totalSellerValue);
+        buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
+        uint buyerBalanceBefore = testERC20.balanceOf(address(this));
+        azurancePool.withdraw(buyerToken.balanceOf(address(this)), 0);
+        uint buyerBalanceAfter = testERC20.balanceOf(address(this));
 
-        // console.log("Total value locked: ", azurancePool.totalValueLocked());
-        // console.log("Total shares: ", azurancePool.totalShare());
-
-        // console.log("Sell shares: ", sellerToken.balanceOf(address(1)));
-        // console.log("Buy shares: ", buyerToken.balanceOf(address(this)));
-
-        // console.log("Sell claimable: ", azurancePool.getAmountClaimable(0, sellerToken.balanceOf(address(1))));
-        // console.log("Buy claimable: ", azurancePool.getAmountClaimable(buyerToken.balanceOf(address(this)), 0));
-
-        // azurancePool.unlockClaim();
-
-        // vm.startPrank(address(1));
-        // sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
-        // azurancePool.withdrawClaimable(0, sellerToken.balanceOf(address(1)));
-        // uint sellerBalanceAfter = testERC20.balanceOf(address(1));
-        // console.log("Seller balance: ", sellerBalanceAfter);
-        // vm.stopPrank();
-
-        // buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
-        // azurancePool.withdrawClaimable(buyerToken.balanceOf(address(this)), 0);
-        // uint buyerBalanceAfter = testERC20.balanceOf(address(this));
-        // console.log("Buyer balance: ", buyerBalanceAfter);
-
-        // assertLt(sellerBalanceAfter, _initialBalance);
-        // assertGt(buyerBalanceAfter, _initialBalance);
+        assertLt(sellerBalanceAfter, _initialBalance);
+        assertGt(buyerBalanceAfter, _initialBalance);
     }
 
     // Test withdraw on matured
+    function testWithdrawMatured() public {
+        uint _initialBalance = 1000000 * 10 ** testERC20.decimals();
+
+        uint _amount = 100 * 10 ** testERC20.decimals();
+        vm.startPrank(address(1));
+        testERC20.approve(address(azurancePool), _amount * _multiplier / 10 ** _multiplierDecimals);
+        azurancePool.sellInsurance(_amount * _multiplier / 10 ** _multiplierDecimals);
+
+        vm.stopPrank();
+        testERC20.approve(address(azurancePool), _amount);
+        azurancePool.buyInsurance(_amount);
+
+        IERC20 sellerToken = IERC20(azurancePool.sellerToken());
+        IERC20 buyerToken = IERC20(azurancePool.buyerToken());
+
+        vm.roll(101);
+        azurancePool.unlockMaturity();
+
+        vm.startPrank(address(1));
+        sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
+        uint sellerBalanceBefore = testERC20.balanceOf(address(1));
+        azurancePool.withdraw(0, sellerToken.balanceOf(address(1)));
+        uint sellerBalanceAfter = testERC20.balanceOf(address(1));
+        vm.stopPrank();
+
+        buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
+        uint buyerBalanceBefore = testERC20.balanceOf(address(this));
+        azurancePool.withdraw(buyerToken.balanceOf(address(this)), 0);
+        uint buyerBalanceAfter = testERC20.balanceOf(address(this));
+
+        assertLt(buyerBalanceAfter, _initialBalance);
+        assertGt(sellerBalanceAfter, _initialBalance);
+    }
+
     // Test withdraw on terminated
+    function testWithdrawTerminated() public {
+        uint _initialBalance = 1000000 * 10 ** testERC20.decimals();
+
+        uint _amount = 100 * 10 ** testERC20.decimals();
+        vm.startPrank(address(1));
+        testERC20.approve(address(azurancePool), _amount * _multiplier / 10 ** _multiplierDecimals);
+        azurancePool.sellInsurance(_amount * _multiplier / 10 ** _multiplierDecimals);
+
+        vm.stopPrank();
+        testERC20.approve(address(azurancePool), _amount);
+        azurancePool.buyInsurance(_amount);
+
+        IERC20 sellerToken = IERC20(azurancePool.sellerToken());
+        IERC20 buyerToken = IERC20(azurancePool.buyerToken());
+
+        azurancePool.unlockTerminate();
+
+        vm.startPrank(address(1));
+        sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
+        uint sellerBalanceBefore = testERC20.balanceOf(address(1));
+        azurancePool.withdraw(0, sellerToken.balanceOf(address(1)));
+        uint sellerBalanceAfter = testERC20.balanceOf(address(1));
+        vm.stopPrank();
+
+        buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
+        uint buyerBalanceBefore = testERC20.balanceOf(address(this));
+        azurancePool.withdraw(buyerToken.balanceOf(address(this)), 0);
+        uint buyerBalanceAfter = testERC20.balanceOf(address(this));
+
+        assertEq(buyerBalanceAfter, _initialBalance);
+        assertEq(sellerBalanceAfter, _initialBalance);
+    }
 
 }

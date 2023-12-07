@@ -6,13 +6,16 @@ import "./MintableERC20.sol";
 import "./interfaces/IAzurancePool.sol";
 
 contract AzurancePool is IAzurancePool {
-    uint256 private _benefitMultiplier;
+    uint256 private _multiplier;
     uint256 private _maturityBlock;
     uint256 private _staleBlock;
     string private _oracleUrl;
 
     uint256 private _fee;
     address private _feeTo;
+
+    uint256 private _rBuy;
+    uint256 private _rSell;
 
     IERC20 private _underlyingToken;
     MintableERC20 private _buyerToken;
@@ -22,7 +25,7 @@ contract AzurancePool is IAzurancePool {
 
     // Constructor
     constructor(
-        uint256 benefitMultiplier_,
+        uint256 multiplier_,
         uint256 maturityBlock_,
         uint256 staleBlock_,
         address underlyingToken_,
@@ -32,7 +35,7 @@ contract AzurancePool is IAzurancePool {
         string memory symbol_,
         string memory oracleUrl_
     ) {
-        _benefitMultiplier = benefitMultiplier_;
+        _multiplier = multiplier_;
         _maturityBlock = maturityBlock_;
         _staleBlock = staleBlock_;
 
@@ -54,12 +57,17 @@ contract AzurancePool is IAzurancePool {
     }
 
     modifier onlyNotStale() {
-        require(block.number <= _staleBlock, "Pansurance: Stale block passed");
+        require(block.number <= _staleBlock, "Azurance: Stale block passed");
         _;
     }
 
     modifier onlyState(State _state) {
-        require(_status == _state, "Pansurance: Invalid state");
+        require(_status == _state, "Azurance: onlyState");
+        _;
+    }
+
+    modifier onlyNotState(State _state) {
+        require(_status != _state, "Azurance: onlyNotState");
         _;
     }
 
@@ -78,7 +86,7 @@ contract AzurancePool is IAzurancePool {
         }
 
         require(
-            (_totalBuyShare() + _share) * _benefitMultiplier / 10 ** multiplierDecimals() <= _totalSellShare(),
+            (_totalBuyShare() + _share) * _multiplier / 10 ** multiplierDecimals() <= _totalSellShare(),
             "Exceed buy deposit"
         );
 
@@ -110,53 +118,43 @@ contract AzurancePool is IAzurancePool {
     function unlockClaim() external override onlyState(State.Ongoing) {
         // Check from oracle
         _status = State.Claimable;
+        _settle();
         emit StateChanged(State.Ongoing, State.Claimable);
     }
 
     function unlockMaturity() external override onlyState(State.Ongoing) {
         require(block.number > _maturityBlock, "Maturity time not met");
         _status = State.Matured;
+        _settle();
         emit StateChanged(State.Ongoing, State.Matured);
     }
 
     function unlockTerminate() external override onlyState(State.Ongoing) {
         // Check oracle fail
         _status = State.Terminated;
+        _settle();
         emit StateChanged(State.Ongoing, State.Terminated);
     }
 
-    function withdrawClaimable(
+    function withdraw(
         uint256 _buyerAmount,
         uint256 _sellerAmount
-    ) external override onlyState(State.Claimable) {
-        uint256 _withdrewAmount = getAmountClaimable(_buyerAmount, _sellerAmount);
+    ) external override onlyNotState(State.Ongoing) {
+        uint256 _withdrewAmount;
+        if (_status == State.Claimable) {
+            _withdrewAmount = getAmountClaimable(_buyerAmount, _sellerAmount);
+        } else if (_status == State.Matured) {
+            _withdrewAmount = getAmountMatured(_buyerAmount, _sellerAmount);
+        } else {
+             _withdrewAmount = getAmountTerminated(_buyerAmount, _sellerAmount);
+        }
         _withdraw(_buyerAmount, _sellerAmount, _withdrewAmount);
-        emit Withdrew(address(_underlyingToken), _withdrewAmount, msg.sender);
-    }
-
-    function withdrawMatured(
-        uint256 _buyerAmount,
-        uint256 _sellerAmount
-    ) external override onlyState(State.Matured) {
-        uint256 _withdrewAmount = getAmountMatured(_buyerAmount, _sellerAmount);
-       _withdraw(_buyerAmount, _sellerAmount, _withdrewAmount);
-        emit Withdrew(address(_underlyingToken), _withdrewAmount, msg.sender);
-    }
-
-    function withdrawTerminated(
-        uint256 _buyerAmount,
-        uint256 _sellerAmount
-    ) external override onlyState(State.Terminated) {
-        uint256 _withdrewAmount = getAmountTerminated(
-            _buyerAmount,
-            _sellerAmount
-        );
-        _withdraw(_buyerAmount, _sellerAmount, _withdrewAmount);
+        _settle();
         emit Withdrew(address(_underlyingToken), _withdrewAmount, msg.sender);
     }
 
     function withdrawFee(uint256 _amount) external {
-        require(_status != State.Ongoing, "Pansurance: Contract is ongoing");
+        require(_status != State.Ongoing, "Azurance: Contract is ongoing");
         // Logic to withdraw platform fees
     }
 
@@ -166,13 +164,23 @@ contract AzurancePool is IAzurancePool {
         uint256 _sellerAmount
     ) public view override returns (uint256) {
         // Gas savings
-        uint _totalBuyerShare = totalBuyShare();
-        uint _totalSellerShare = totalSellShare();
-        uint _totalShare = totalShare();
+        uint _totalBuyerShare = settledBuyShare();
+        uint _totalSellerShare = settledSellShare();
+        uint _totalShare = settledShare();
         uint _totalValueLocked = totalValueLocked();
 
-        uint _totalBuyerValue = (_totalBuyerShare * _benefitMultiplier * _totalValueLocked) / 10 ** multiplierDecimals() / _totalShare; 
-        uint _totalSellerValue = _totalValueLocked - _totalBuyerValue;
+        if (_status == State.Ongoing) {
+            _totalBuyerShare = totalBuyShare();
+            _totalSellerShare = totalSellShare();
+            _totalShare = totalShare();
+        }
+
+        uint _adjustedBuyerShare = _totalBuyerShare * _multiplier / 10 ** multiplierDecimals();
+        uint _adjustedSellerShare = _totalSellerShare * 10 ** multiplierDecimals() / _multiplier;
+        _totalShare = _adjustedBuyerShare + _adjustedSellerShare;
+
+        uint _totalBuyerValue = (_adjustedBuyerShare * _totalValueLocked) / _totalShare;
+        uint _totalSellerValue = (_adjustedSellerShare * _totalValueLocked) / _totalShare;
 
         uint _withdrewAmount = 0;
         if (_buyerAmount > 0) {
@@ -198,18 +206,23 @@ contract AzurancePool is IAzurancePool {
         uint256 _sellerAmount
     ) public view override returns (uint256) {
         // Gas savings
-        uint _totalBuyerShare = totalBuyShare();
-        uint _totalSellerShare = totalSellShare();
-        uint _totalShare = totalShare();
+        uint _totalBuyerShare = settledBuyShare();
+        uint _totalSellerShare = settledSellShare();
+        uint _totalShare = settledShare();
         uint _totalValueLocked = totalValueLocked();
 
-        uint _totalSellerValue = (_totalValueLocked *
-            (_totalSellerShare +
-                (_totalBuyerShare *
-                    (_benefitMultiplier - 10 ** multiplierDecimals())) /
-                _benefitMultiplier)) / _totalShare / 10 ** multiplierDecimals();
+        if (_status == State.Ongoing) {
+            _totalBuyerShare = totalBuyShare();
+            _totalSellerShare = totalSellShare();
+            _totalShare = totalShare();
+        }
 
-        uint _totalBuyerValue = _totalValueLocked - _totalSellerValue;
+        uint _adjustedBuyerShare = _totalBuyerShare * 10 ** multiplierDecimals() / _multiplier;
+        uint _adjustedSellerShare = _totalSellerShare * _multiplier / 10 ** multiplierDecimals();
+        _totalShare = _adjustedBuyerShare + _adjustedSellerShare;
+
+        uint _totalBuyerValue = (_adjustedBuyerShare * _totalValueLocked) / _totalShare;
+        uint _totalSellerValue = (_adjustedSellerShare * _totalValueLocked) / _totalShare;
 
         uint _withdrewAmount = 0;
         if (_buyerAmount > 0) {
@@ -234,11 +247,16 @@ contract AzurancePool is IAzurancePool {
         uint256 _buyerAmount,
         uint256 _sellerAmount
     ) public view override returns (uint256) {
-        // Gas savings
-        uint _totalBuyerShare = totalBuyShare();
-        uint _totalSellerShare = totalSellShare();
-        uint _totalShare = totalShare();
+         uint _totalBuyerShare = settledBuyShare();
+        uint _totalSellerShare = settledSellShare();
+        uint _totalShare = settledShare();
         uint _totalValueLocked = totalValueLocked();
+
+        if (_status == State.Ongoing) {
+            _totalBuyerShare = totalBuyShare();
+            _totalSellerShare = totalSellShare();
+            _totalShare = totalShare();
+        }
 
         uint _totalBuyerValue = (_totalBuyerShare * _totalValueLocked) /
             _totalShare;
@@ -280,6 +298,18 @@ contract AzurancePool is IAzurancePool {
         return _totalSellShare();
     }
 
+    function settledShare() public view override returns (uint256) {
+        return _settledShare();
+    }
+
+    function settledBuyShare() public view override returns (uint256) {
+        return _settledBuyShare();
+    }
+
+    function settledSellShare() public view override returns (uint256) {
+        return _settledSellShare();
+    }
+
     function multiplierDecimals() public view override returns (uint256) {
         return 6;
     }
@@ -300,8 +330,8 @@ contract AzurancePool is IAzurancePool {
         return address(_underlyingToken);
     }
 
-    function benefitMultiplier() external view override returns (uint256) {
-        return _benefitMultiplier;
+    function multiplier() external view override returns (uint256) {
+        return _multiplier;
     }
 
     function fee() external view override returns (uint256) {
@@ -345,12 +375,29 @@ contract AzurancePool is IAzurancePool {
         return _sellerToken.totalSupply();
     }
 
+    function _settledShare() internal view returns (uint256) {
+        return _settledBuyShare() + _settledSellShare();
+    }
+
+    function _settledBuyShare() internal view returns (uint256) {
+        return _rBuy;
+    }
+
+    function _settledSellShare() internal view returns (uint256) {
+        return _rSell;
+    }
+
     function _getPortion(
         uint256 _share,
         uint256 _totalShare,
         uint256 _totalValue
     ) internal pure returns (uint256) {
         return (_share * _totalValue) / _totalShare;
+    }
+
+    function _settle() internal {
+        _rBuy = _totalBuyShare();
+        _rSell = _totalSellShare();
     }
 
     function _withdraw(uint256 _buyerAmount, uint256 _sellerAmount, uint256 _withdrewAmount) internal {
