@@ -1,6 +1,14 @@
 # Azurance Smart Contract
 Azurance is a decentralized insurance protocol, which offers high flexbility and openess for all participants.
 
+## How to use
+1. Compile contracts
+`forge build`
+2. Test
+`forge test`
+3. Deploy (Check how to customize the script on that file).
+`./deploy.sh`
+
 ## Deployments
 
 ### Arbitrum Goerli
