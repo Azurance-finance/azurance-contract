@@ -11,9 +11,8 @@ contract SellInsurance is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        IAzurancePool pool = IAzurancePool(0x2a26e41f3f332d91bdf405902550116cbc84fba0);
-
-        TestERC20 token = TestERC20(0x02c23a6ecfac21b1409fd78684a614dd78f2b6b7);
+        IAzurancePool pool = IAzurancePool(0x2A26e41F3F332D91BDF405902550116cBc84fbA0);
+        TestERC20 token = TestERC20(0x02C23A6ecFAC21B1409FD78684a614Dd78F2B6b7);
 
         uint256 amount = 1000 * 10 ** token.decimals();
 
