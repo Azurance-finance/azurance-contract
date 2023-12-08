@@ -1,66 +1,10 @@
-## Foundry
+# Azurance Smart Contract
+Azurance is a decentralized insurance protocol, which offers high flexbility and openess for all participants.
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Deployments
 
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+### Arbitrum Goerli
+- AzruanceFactory: [xxxxx](https://goerli.etherscan.io/address/xxxxx)
+- SimpleAzurancePool: [0x2a26e41f3f332d91bdf405902550116cbc84fba0](https://goerli.arbiscan.io/address/0x2a26e41f3f332d91bdf405902550116cbc84fba0)
+- SimpleChecker: [0x927b303a496b273f3e90ce01c54c9f9b7f5a76c2](https://goerli.arbiscan.io/address/0x927b303a496b273f3e90ce01c54c9f9b7f5a76c2)
+- TestERC20: [0x02c23a6ecfac21b1409fd78684a614dd78f2b6b7](https://goerli.arbiscan.io/address/0x02c23a6ecfac21b1409fd78684a614dd78f2b6b7)
