@@ -84,7 +84,7 @@ contract AzurancePool is IAzurancePool {
         uint256 _amount
     ) external override onlyNotStale onlyState(State.Ongoing) {
         // Gas savings
-        uint _totalShare = totalShare();
+        uint _totalShare = totalShares();
 
         uint _share = 0;
         if (_totalShare == 0) {
@@ -108,7 +108,7 @@ contract AzurancePool is IAzurancePool {
         uint256 _amount
     ) external override onlyNotStale onlyState(State.Ongoing) {
         // Gas savings
-        uint _totalShare = totalShare();
+        uint _totalShare = totalShares();
 
         uint _shares = 0;
         if (_totalShare == 0) {
@@ -188,7 +188,7 @@ contract AzurancePool is IAzurancePool {
         if (_status == State.Ongoing) {
             _totalBuyerShare = totalBuyShare();
             _totalSellerShare = totalSellShare();
-            _totalShare = totalShare();
+            _totalShare = totalShares();
         }
 
         uint _adjustedBuyerShare = _totalBuyerShare * _multiplier / 10 ** multiplierDecimals();
@@ -230,7 +230,7 @@ contract AzurancePool is IAzurancePool {
         if (_status == State.Ongoing) {
             _totalBuyerShare = totalBuyShare();
             _totalSellerShare = totalSellShare();
-            _totalShare = totalShare();
+            _totalShare = totalShares();
         }
 
         uint _adjustedBuyerShare = _totalBuyerShare * 10 ** multiplierDecimals() / _multiplier;
@@ -263,20 +263,20 @@ contract AzurancePool is IAzurancePool {
         uint256 _buyerAmount,
         uint256 _sellerAmount
     ) public view override returns (uint256) {
-         uint _totalBuyerShare = settledBuyShare();
+        uint _totalBuyerShare = settledBuyShare();
         uint _totalSellerShare = settledSellShare();
         uint _totalShare = settledShare();
-        uint _totalValueLocked = totalValueLocked();
+        uint _tvl = totalValueLocked();
 
         if (_status == State.Ongoing) {
             _totalBuyerShare = totalBuyShare();
             _totalSellerShare = totalSellShare();
-            _totalShare = totalShare();
+            _totalShare = totalShares();
         }
 
-        uint _totalBuyerValue = (_totalBuyerShare * _totalValueLocked) /
+        uint _totalBuyerValue = (_totalBuyerShare * _tvl) /
             _totalShare;
-        uint _totalSellerValue = (_totalSellerShare * _totalValueLocked) /
+        uint _totalSellerValue = (_totalSellerShare * _tvl) /
             _totalShare;
 
         uint _withdrewAmount = 0;
@@ -302,8 +302,8 @@ contract AzurancePool is IAzurancePool {
         return _totalValueLocked();
     }
 
-    function totalShare() public view override returns (uint256) {
-        return _totalShare();
+    function totalShares() public view override returns (uint256) {
+        return _totalShares();
     }
 
     function totalBuyShare() public view override returns (uint256) {
@@ -326,11 +326,11 @@ contract AzurancePool is IAzurancePool {
         return _settledSellShare();
     }
 
-    function multiplierDecimals() public view override returns (uint256) {
+    function multiplierDecimals() public pure override returns (uint256) {
         return 6;
     }
 
-    function feeDecimals() public view override returns (uint256) {
+    function feeDecimals() public pure override returns (uint256) {
         return 6;
     }
 
@@ -379,7 +379,7 @@ contract AzurancePool is IAzurancePool {
         return _underlyingToken.balanceOf(address(this));
     }
 
-    function _totalShare() internal view returns (uint256) {
+    function _totalShares() internal view returns (uint256) {
         return _totalBuyShare() + _totalSellShare();
     }
 

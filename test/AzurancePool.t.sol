@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import "../src/AzuranceFactory.sol";
 import "../src/AzurancePool.sol";
 import "../src/SimpleChecker.sol";
 import "./contracts/TestERC20.sol";
@@ -10,13 +11,13 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract AzurancePoolTest is Test {
 
+    AzuranceFactory public factory;
     AzurancePool public azurancePool;
     SimpleChecker public checker;
     TestERC20 public testERC20;
 
     uint256 private _multiplier = 10000000; // 3x
     uint256 private _multiplierDecimals = 6;
-
 
     enum State {
         Ongoing,
@@ -36,6 +37,7 @@ contract AzurancePoolTest is Test {
         testERC20.mint(address(this), 1000000 * 10 ** testERC20.decimals());
         testERC20.mint(address(1), 1000000 * 10 ** testERC20.decimals());
 
+        factory = new AzuranceFactory();
         checker = new SimpleChecker();
 
         uint256 _maturityBlock = 100;
@@ -47,7 +49,8 @@ contract AzurancePoolTest is Test {
         string memory _name = "Covid Insurance";
         string memory _symbol = "COVID";
 
-        azurancePool = new AzurancePool(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, address(checker), _name, _symbol);
+        address _pool = factory.createAzuranceContract(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, address(checker), _name, _symbol);
+        azurancePool = AzurancePool(_pool);
     }
 
     function testSellInsurance() public {
@@ -147,13 +150,11 @@ contract AzurancePoolTest is Test {
 
         vm.startPrank(address(1));
         sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
-        uint sellerBalanceBefore = testERC20.balanceOf(address(1));
         azurancePool.withdraw(0, sellerToken.balanceOf(address(1)));
         uint sellerBalanceAfter = testERC20.balanceOf(address(1));
         vm.stopPrank();
 
         buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
-        uint buyerBalanceBefore = testERC20.balanceOf(address(this));
         azurancePool.withdraw(buyerToken.balanceOf(address(this)), 0);
         uint buyerBalanceAfter = testERC20.balanceOf(address(this));
 
@@ -182,13 +183,11 @@ contract AzurancePoolTest is Test {
 
         vm.startPrank(address(1));
         sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
-        uint sellerBalanceBefore = testERC20.balanceOf(address(1));
         azurancePool.withdraw(0, sellerToken.balanceOf(address(1)));
         uint sellerBalanceAfter = testERC20.balanceOf(address(1));
         vm.stopPrank();
 
         buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
-        uint buyerBalanceBefore = testERC20.balanceOf(address(this));
         azurancePool.withdraw(buyerToken.balanceOf(address(this)), 0);
         uint buyerBalanceAfter = testERC20.balanceOf(address(this));
 
@@ -216,13 +215,11 @@ contract AzurancePoolTest is Test {
 
         vm.startPrank(address(1));
         sellerToken.approve(address(azurancePool), sellerToken.balanceOf(address(1)));
-        uint sellerBalanceBefore = testERC20.balanceOf(address(1));
         azurancePool.withdraw(0, sellerToken.balanceOf(address(1)));
         uint sellerBalanceAfter = testERC20.balanceOf(address(1));
         vm.stopPrank();
 
         buyerToken.approve(address(azurancePool), buyerToken.balanceOf(address(this)));
-        uint buyerBalanceBefore = testERC20.balanceOf(address(this));
         azurancePool.withdraw(buyerToken.balanceOf(address(this)), 0);
         uint buyerBalanceAfter = testERC20.balanceOf(address(this));
 

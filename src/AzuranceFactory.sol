@@ -1,17 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./AzurancePool.sol";
 
-contract AzuranceFactory is Ownable {
+contract AzuranceFactory {
 
-    constructor() Ownable(msg.sender) {}
+    event InsuranceCreated(address indexed creator, address indexed target, address indexed asset);
 
-    // function createAzuranceContract() external override onlyOwner {
-        
-    //     emit Deposited(msg.sender, amount);
-    // }
+    function createAzuranceContract(
+        uint256 multiplier_,
+        uint256 maturityBlock_,
+        uint256 staleBlock_,
+        address asset_,
+        uint256 fee_,
+        address feeTo_,
+        address checker_,
+        string memory name_,
+        string memory symbol_
+    ) external returns (address) {
+        AzurancePool azurancePool = new AzurancePool(multiplier_, maturityBlock_, staleBlock_, asset_, fee_, feeTo_, checker_, name_, symbol_);
+        emit InsuranceCreated(msg.sender, address(azurancePool), asset_);
+        return address(azurancePool);
+    }
 
 }

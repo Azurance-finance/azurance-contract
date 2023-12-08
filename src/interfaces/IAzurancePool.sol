@@ -46,7 +46,7 @@ interface IAzurancePool {
     function getAmountMatured(uint256 buyerAmount, uint256 sellerAmount) external view returns (uint256);
     function getAmountTerminated(uint256 buyerAmount, uint256 sellerAmount) external view returns (uint256);
     function totalValueLocked() external view returns (uint256);
-    function totalShare() external view returns (uint256);
+    function totalShares() external view returns (uint256);
     function totalSellShare() external view returns (uint256);
     function totalBuyShare() external view returns (uint256);
     function settledShare() external view returns (uint256);
