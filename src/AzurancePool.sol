@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./MintableERC20.sol";
@@ -21,7 +21,7 @@ contract AzurancePool is IAzurancePool {
     MintableERC20 private _buyerToken;
     MintableERC20 private _sellerToken;
 
-    IAzuranceCondition private condition;
+    IAzuranceCondition private _condition;
 
     State private _status;
 
@@ -54,7 +54,7 @@ contract AzurancePool is IAzurancePool {
             string.concat(symbol_, "-SELL")
         );
 
-        condition = IAzuranceCondition(condition_);
+        _condition = IAzuranceCondition(condition_);
 
         _status = State.Ongoing;
     }
@@ -75,7 +75,7 @@ contract AzurancePool is IAzurancePool {
     }
 
     modifier onlyCondition() {
-        require(msg.sender == address(condition), "Azurance: Only condition");
+        require(msg.sender == address(_condition), "Azurance: Only condition");
         _;
     }
 
@@ -145,11 +145,11 @@ contract AzurancePool is IAzurancePool {
     }
 
     function checkUnlockClaim() external override {
-        condition.checkUnlockClaim(address(this));
+        _condition.checkUnlockClaim(address(this));
     }
 
     function checkUnlockTerminate() external override {
-        condition.checkUnlockTerminate(address(this));
+        _condition.checkUnlockTerminate(address(this));
     }
 
     function withdraw(
@@ -359,7 +359,7 @@ contract AzurancePool is IAzurancePool {
     }
 
     function condition() external view override returns (address) {
-        return address(condition);
+        return address(_condition);
     }
 
     function maturityBlock() external view override returns (uint256) {
