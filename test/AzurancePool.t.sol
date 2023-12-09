@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "../src/AzuranceFactory.sol";
 import "../src/AzurancePool.sol";
-import "../src/SimpleChecker.sol";
+import "../src/SimpleCondition.sol";
 import "./contracts/TestERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -13,7 +13,7 @@ contract AzurancePoolTest is Test {
 
     AzuranceFactory public factory;
     AzurancePool public azurancePool;
-    SimpleChecker public checker;
+    SimpleCondition public condition;
     TestERC20 public testERC20;
 
     uint256 private _multiplier = 10000000; // 3x
@@ -38,7 +38,7 @@ contract AzurancePoolTest is Test {
         testERC20.mint(address(1), 1000000 * 10 ** testERC20.decimals());
 
         factory = new AzuranceFactory();
-        checker = new SimpleChecker();
+        condition = new SimpleCondition();
 
         uint256 _maturityBlock = 100;
         uint256 _staleBlock = 90;
@@ -49,7 +49,7 @@ contract AzurancePoolTest is Test {
         string memory _name = "Covid Insurance";
         string memory _symbol = "COVID";
 
-        address _pool = factory.createAzuranceContract(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, address(checker), _name, _symbol);
+        address _pool = factory.createAzuranceContract(_multiplier, _maturityBlock, _staleBlock, _underlyingToken, _fee, _feeTo, address(condition), _name, _symbol);
         azurancePool = AzurancePool(_pool);
     }
 

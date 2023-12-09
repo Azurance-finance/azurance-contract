@@ -25,7 +25,7 @@ interface IAzurancePool {
     function fee() external view returns (uint256);
     function feeDecimals() external view returns (uint256);
     function feeTo() external view returns (address);
-    function checker() external view returns (address);
+    function condition() external view returns (address);
     function buyerToken() external view returns (address);
     function sellerToken() external view returns (address);
     function status() external view returns (State);

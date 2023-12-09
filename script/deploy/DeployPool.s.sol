@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "../../test/contracts/TestERC20.sol";
-import "../../src/SimpleChecker.sol";
+import "../../src/SimpleCondition.sol";
 import "../../src/AzurancePool.sol";
 import "../../src/interfaces/IAzuranceFactory.sol";
 
@@ -17,7 +17,7 @@ contract DeployPool is Script {
     uint256 private _staleBlock = _staleTime * block.number / block.timestamp;
 
     address private _asset = 0x02C23A6ecFAC21B1409FD78684a614Dd78F2B6b7;
-    address private _checker = 0x927B303A496b273f3E90Ce01c54C9f9b7F5A76C2;
+    address private _condition = 0x927B303A496b273f3E90Ce01c54C9f9b7F5A76C2;
 
     IAzuranceFactory private _factory = IAzuranceFactory(0x77d51D3B08aB7C1d5253513982a2FDb0A8550072);
 
@@ -32,7 +32,7 @@ contract DeployPool is Script {
         string memory _name = "Covid Insurance";
         string memory _symbol = "COVID";
 
-        _factory.createAzuranceContract(_multiplier, _maturityBlock, _staleBlock, _asset, _fee, _feeTo, _checker, _name, _symbol);
+        _factory.createAzuranceContract(_multiplier, _maturityBlock, _staleBlock, _asset, _fee, _feeTo, _condition, _name, _symbol);
 
         vm.stopBroadcast();
     }

@@ -9,7 +9,7 @@ interface IAzuranceFactory {
         address asset_,
         uint256 fee_,
         address feeTo_,
-        address checker_,
+        address condition_,
         string memory name_,
         string memory symbol_
     ) external returns (address);
