@@ -2,4 +2,5 @@
 ds-test/=lib/forge-std/lib/ds-test/src/
 erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/
 forge-std/=lib/forge-std/src/
-@chainlink/contracts=lib/chainlink-brownie-contracts/contracts/
+@chainlink/contracts/=lib/chainlink/contracts/
+@chainlink/contracts-ccip/=node_modules/@chainlink/contracts-ccip

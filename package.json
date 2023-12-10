@@ -1,0 +1,6 @@
+{
+    "name": "azurance-contract",
+    "devDependencies": {
+      "@chainlink/contracts-ccip": "^0.7.3"
+    }
+  }
