@@ -3,8 +3,9 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Script.sol";
 
-import "../../src/MUMBAIMessenger.sol";
-import {IERC20} from "../../src/interfaces/IERC20.sol";
+import "../../src/dataProviders/MUMBAIMessenger.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract DeployFujiMessenger is Script {
     function run() public {
@@ -21,7 +22,7 @@ contract DeployFujiMessenger is Script {
         );
 
         // onwer address tranfer link to messenger Contract
-        IERC20 link = IERC20(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
+        IERC20Metadata link = IERC20Metadata(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         // fill 2 link token to messenger contract for link fee
         link.transfer(address(messenger), 1 * 10 ** link.decimals());
 

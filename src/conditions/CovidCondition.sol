@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "./interfaces/IAzuranceCondition.sol";
-import "./interfaces/IAzurancePool.sol";
-import "./interfaces/ICovidFunction.sol";
+import "../interfaces/IAzuranceCondition.sol";
+import "../interfaces/IAzurancePool.sol";
+import "../interfaces/ICovidFunction.sol";
 
 contract CovidCondition is IAzuranceCondition {
     ICovidFunction public covidFunction;

@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 import "../src/AzuranceFactory.sol";
 import "../src/AzurancePool.sol";
-import "../src/SimpleCondition.sol";
+import "../src/conditions/SimpleCondition.sol";
 import "./contracts/TestERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";

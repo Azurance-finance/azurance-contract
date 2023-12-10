@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Script.sol";
-import "../../src/ETHDiffCondition.sol";
+import "../../src/conditions/ETHDiffCondition.sol";
 
 contract DeployETHDiffCondition is Script {
     function run() public {

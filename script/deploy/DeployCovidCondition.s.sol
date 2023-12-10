@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "../../test/contracts/TestERC20.sol";
-import "../../src/CovidCondition.sol";
+import "../../src/conditions/CovidCondition.sol";
 import "../../src/AzurancePool.sol";
 
 contract DeployCovidCondition is Script {

@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "../../test/contracts/TestERC20.sol";
-import "../../src/SimpleCondition.sol";
+import "../../src/conditions/SimpleCondition.sol";
 import "../../src/AzurancePool.sol";
 import "../../src/interfaces/IAzuranceFactory.sol";
 

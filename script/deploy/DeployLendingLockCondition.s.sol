@@ -3,8 +3,8 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Script.sol";
 
-import "../../src/LendingLockCondition.sol";
-import {IERC20} from "../../src/interfaces/IERC20.sol";
+import "../../src/conditions/LendingLockCondition.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract DeployLendingLockCondition is Script {
     function run() public {
