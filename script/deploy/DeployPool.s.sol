@@ -16,10 +16,10 @@ contract DeployPool is Script {
     uint256 private _maturityBlock = _maturityTime * block.number / block.timestamp;
     uint256 private _staleBlock = _staleTime * block.number / block.timestamp;
 
-    address private _asset = 0x2cF4D2118e5cBE5c5bB24aF6Ef0492139aca54db;
-    address private _condition = 0xCf267365eeC88bfB3de9A69e986cDbaE1B1d8F94;
+    address private _asset = 0xb0b001478b069FaC8b849c237f0c0fba790aA630;
+    address private _condition = 0xb0b001478b069FaC8b849c237f0c0fba790aA630;
 
-    IAzuranceFactory private _factory = IAzuranceFactory(0x98BA6640Cf3d3B45dA7773c33BD9558Ad3D79B0a);
+    IAzuranceFactory private _factory = IAzuranceFactory(0x2DA1A7AaB838960a49AC0D62480aD3412b2E8B5B);
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");

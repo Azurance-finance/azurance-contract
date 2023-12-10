@@ -12,7 +12,7 @@ contract DeployCovidCondition is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         // require chainlink function address
-        CovidCondition condition = new CovidCondition(address(0xBF2C74f42cA6302e7369df51d1E2a78823c1401D));
+        CovidCondition condition = new CovidCondition(address(0xCe8Adb430ead472D0D24d3FF1F8c2D6e3cCa4FEe));
 
         vm.stopBroadcast();
     }
