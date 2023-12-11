@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract ETHPriceFeed  {
-AggregatorV3Interface internal dataFeed;
+    AggregatorV3Interface internal dataFeed;
 
     int256 public startPrice;
     int256 public pricediff;
