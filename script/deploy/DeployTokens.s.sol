@@ -12,8 +12,8 @@ contract DeployTokens is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        DAI dai = new DAI();
-        WETH weth = new WETH();
+        // DAI dai = new DAI();
+        // WETH weth = new WETH();
         USDT usdt = new USDT();
 
         vm.stopBroadcast();

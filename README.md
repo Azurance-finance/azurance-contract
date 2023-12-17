@@ -11,12 +11,17 @@ Azurance is a decentralized insurance protocol, which offers high flexbility and
 
 ## Deployments
 
+### Goerli
+- DAI: [0xB4638E2991b4aA81c5B25D10AAE58E0712853b3E](https://goerli.etherscan.io/address/0xB4638E2991b4aA81c5B25D10AAE58E0712853b3E)
+- WETH: [0x8F0f13b07EeAF4e307CBBEe6cB9Aea477937909C](https://goerli.etherscan.io/address/0x8F0f13b07EeAF4e307CBBEe6cB9Aea477937909C)
+- USDT: [0xAdcF3c517BD821EaC5576095766e5e363dd441e5](https://goerli.etherscan.io/address/0xAdcF3c517BD821EaC5576095766e5e363dd441e5)
+
 ### Arbitrum Goerli
 - AzruanceFactory: [0x77d51D3B08aB7C1d5253513982a2FDb0A8550072](https://goerli.arbiscan.io/address/0x77d51d3b08ab7c1d5253513982a2fdb0a8550072)
 - SimpleAzurancePool: [0x4a954f76c828c35aF6E1225D9d3c773A735199d4](https://goerli.arbiscan.io/address/0x4a954f76c828c35aF6E1225D9d3c773A735199d4)
 - SimpleChecker: [0x927B303A496b273f3E90Ce01c54C9f9b7F5A76C2](https://goerli.arbiscan.io/address/0x927B303A496b273f3E90Ce01c54C9f9b7F5A76C2)
 - DAI: [0x3FC3378D11b7a9187bd20053FbDf6F4D900235f6](https://goerli.arbiscan.io/address/0x3FC3378D11b7a9187bd20053FbDf6F4D900235f6)
-- WETH: [0x40b600C5e104E52bD2ea9EA453bFDFEe7811Ce0B.](https://goerli.arbiscan.io/address/0x40b600C5e104E52bD2ea9EA453bFDFEe7811Ce0B.)
+- WETH: [0x40b600C5e104E52bD2ea9EA453bFDFEe7811Ce0B](https://goerli.arbiscan.io/address/0x40b600C5e104E52bD2ea9EA453bFDFEe7811Ce0B.)
 - USDT: [0xaB38CD656D1C6aF07A879Dbf079C5f287883975f](https://goerli.arbiscan.io/address/0xaB38CD656D1C6aF07A879Dbf079C5f287883975f)
 
 ### Fuji
